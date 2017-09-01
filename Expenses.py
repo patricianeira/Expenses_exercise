@@ -31,29 +31,29 @@ class Expenses:
         file.write("{0}\n{1}\n{2}".format(self.food, self.transport, self.gym))
         file.close()
 
-    def process_input(self, exp):
+    def process_input(self):
         while (True):
             try:
-                list = exp.data.split()
-                if exp.data == 'List expenses':
-                    exp.print_list_expenses()
-                elif exp.data == 'quit':
+                list = self.data.split()
+                if self.data == 'List expenses':
+                    self.print_list_expenses()
+                elif self.data == 'quit':
                     print "Bye!"
-                    exp.save_file()
+                    self.save_file()
                     break
                 else:
                     if len(list) == 3:
                         if list[0] == 'Add' or 'add':
                             try:
                                 if list[2] == 'food':
-                                    exp.food += int(list[1])
-                                    exp.print_total(int(list[1]), list[2], exp.food)
+                                    self.food += int(list[1])
+                                    self.print_total(int(list[1]), list[2], self.food)
                                 elif list[2] == 'transportation':
-                                    exp.transport += int(list[1])
-                                    exp.print_total(int(list[1]), list[2], exp.transport)
+                                    self.transport += int(list[1])
+                                    self.print_total(int(list[1]), list[2], self.transport)
                                 elif list[2] == 'gym':
-                                    exp.gym += int(list[1])
-                                    exp.print_total(int(list[1]), list[2], exp.gym)
+                                    self.gym += int(list[1])
+                                    self.print_total(int(list[1]), list[2], self.gym)
                                 else:
                                     print "Just 3 options: food, transportation, gym"
                                     break
@@ -76,4 +76,4 @@ if __name__ == '__main__':
     exp = Expenses()
     exp.read_file()
     exp.data = raw_input("Welcome!\nYou have:\nFood:{0}, Transportation:{1}, Gym:{2}\n".format(exp.food, exp.transport, exp.gym))
-    exp.process_input(exp)
+    exp.process_input()
