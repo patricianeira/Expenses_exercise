@@ -16,40 +16,87 @@ def captured_output():
 
 class ExpensesTest(unittest.TestCase):
 
-    def test_not_option_add_expense(self):
+    def test_equal_print_expenses(self):
         exp = Expenses()
-        operation = 'Add'
-        input_list = ['Add', '2', 'gy']
+        exp.concepts = ["food","transportation","gym"]
+        exp.quantities = ["10","15","15"]
         with captured_output() as (out, err):
-            exp.add_expense(operation, input_list)
+            exp.print_expenses(exp.concepts)
         output = out.getvalue().strip()
-        self.assertEqual(output, "Just 3 options: food, transportation, gym")
+        self.assertEqual(output, "10 food\n15 transportation\n15 gym")
 
-    def test_number_option_add_expense(self):
+    def test_not_equal_print_expenses(self):
         exp = Expenses()
-        operation = 'Add'
-        input_list = ['Add', '2', '4']
+        exp.concepts = ["food","transportation","gym"]
+        exp.quantities = ["10","15","15"]
         with captured_output() as (out, err):
-            exp.add_expense(operation, input_list)
+            exp.print_expenses(exp.concepts)
         output = out.getvalue().strip()
-        self.assertEqual(output, "Just 3 options: food, transportation, gym")
+        self.assertNotEqual(output, "10 food\n15 transportation\n20 gym")
 
-    def test_number_is_string_add_expense(self):
+    def test_equal_print_total(self):
         exp = Expenses()
-        operation = 'Add'
-        input_list = ['Add', 'E', 'gym']
+        operation = "Added"
+        quantity = "4"
+        activity = "gym"
+        total = "45"
         with captured_output() as (out, err):
-            exp.add_expense(operation, input_list)
+            exp.print_total(operation, quantity, activity, total)
+        output = out.getvalue().strip()
+        self.assertEqual(output, "4 pesos Added to gym - Total: 45 pesos")
+
+    def test_not_equal_print_total(self):
+        exp = Expenses()
+        operation = "Added"
+        quantity = "4"
+        activity = "gym"
+        total = "45"
+        with captured_output() as (out, err):
+            exp.print_total(operation, quantity, activity, total)
+        output = out.getvalue().strip()
+        self.assertNotEqual(output, "4 pesos Added to gym - Total: 46 pesos")
+
+    def test_wrong_option_process_input(self):
+        exp = Expenses()
+        user_input = "Hi"
+        with captured_output() as (out, err):
+            exp.process_input(user_input)
+        output = out.getvalue().strip()
+        self.assertEqual(output, "Not an option")
+
+    def test_wrong_concept_add_expense(self):
+        exp = Expenses()
+        quantity = '6'
+        concept = "g"
+        with captured_output() as (out, err):
+            exp.add_expense(quantity, concept)
+        output = out.getvalue().strip()
+        self.assertEqual(output, "The concept is incorrect")
+
+    def test_not_digit_add_expense(self):
+        exp = Expenses()
+        quantity = 'r'
+        concept = "gym"
+        with captured_output() as (out, err):
+            exp.add_expense(quantity, concept)
         output = out.getvalue().strip()
         self.assertEqual(output, "The 2nd parameter has to be a number")
 
+    def test_read_file(self):
+        exp = Expenses()
+        exp.path_file = "test.txt"
+        exp.read_expenses_file()
+        self.assertNotEqual(len(exp.concepts),0)
+
     def test_empty_read_file(self):
         exp = Expenses()
-        exp.read_file("test_empty.txt")
-        self.assertEqual(exp.food, 0)
-        self.assertEqual(exp.transport, 0)
-        self.assertEqual(exp.gym, 0)
-
+        exp.path_file = "test_empty.txt"
+        exp.read_expenses_file()
+        with captured_output() as (out, err):
+            exp.read_expenses_file()
+        output = out.getvalue().strip()
+        self.assertEqual(len(exp.concepts), 0)
+        self.assertEqual(output, "The file is empty")
 
 if __name__ == '__main__':
     unittest.main()

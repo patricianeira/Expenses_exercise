@@ -4,94 +4,83 @@ import os
 class Expenses:
 
     def __init__(self):
-        self.food = 0
-        self.transport = 0
-        self.gym = 0
-        self.input = ""
-        self.proces_flag = True
+        self.path_file = ""
+        self.process_flag = True
+        self.concepts = []
+        self.quantities = []
+        self.options = {'LIST': self.print_expenses, 'QUIT': self.save_file, 'ADD': self.add_expense, 'DELETE': self.delete_expense}
 
-    def print_list_expenses(self):
-        print "{0} - food, {1} - transportation, {2} - gym\n".format(self.food, self.transport, self.gym)
+    def print_expenses(self, *args):
+        for i in range(len(self.concepts)):
+            print self.quantities[i], self.concepts[i]
 
     def print_total(self, operation, quantity, activity, total):
         print "{0} pesos {1} to {2} - Total: {3} pesos\n".format(quantity, operation, activity, total)
 
-    def print_options(self):
-        pass
-
-    def read_file(self, path_file):
-        #with open(...)
-        if(os.path.getsize(path_file)) > 0:
-            file = open(path_file, "r")
-            lines = file.read().splitlines()
-            self.food = int(lines[0])
-            self.transport = int(lines[1])
-            self.gym = int(lines[2])
-            file.close()
-
-    def save_file(self, path_file):
-        file = open(path_file, "w")
-        file.write("{0}\n{1}\n{2}".format(self.food, self.transport, self.gym))
-        file.close()
-        print "Bye!"
-
-    # mandar variables sin lista
-    def add_expense(self, operation, input_list):
-        if(input_list[1].isdigit()):
-            if input_list[2] == 'food':
-                self.food += int(input_list[1])
-                self.print_total(operation, int(input_list[1]), input_list[2], self.food)
-            elif input_list[2] == 'transportation':
-                self.transport += int(input_list[1])
-                self.print_total(operation, int(input_list[1]), input_list[2], self.transport)
-            elif input_list[2] == 'gym':
-                self.gym += int(input_list[1])
-                self.print_total(operation, int(input_list[1]), input_list[2], self.gym)
-            else:
-                print "Just 3 options: food, transportation, gym"
-
-    def delete_expense(self, operation, input_list):
-        if input_list[2] == 'food':
-            self.food -= int(input_list[1])
-            self.print_total(operation, int(input_list[1]), input_list[2], self.food)
-        elif input_list[2] == 'transportation':
-            self.transport -= int(input_list[1])
-            self.print_total(operation, int(input_list[1]), input_list[2], self.transport)
-        elif input_list[2] == 'gym':
-            self.gym -= int(input_list[1])
-            self.print_total(operation, int(input_list[1]), input_list[2], self.gym)
+    def read_expenses_file(self):
+        if os.stat(self.path_file).st_size != 0:
+            with open(self.path_file, 'r') as expenses_file:
+                lines = expenses_file.read().splitlines()
+                self.concepts = lines[0].split(",")
+                self.quantities = lines[1].split(",")
         else:
-            print "Just 3 options: food, transportation, gym"
+            print "The file is empty"
 
-    def process_input(self, input_list):
-        if self.input == 'List expenses':
-            self.print_list_expenses()
-        elif self.input == 'quit':
-            self.save_file("test.txt")
-            self.proces_flag = False
-        else:
-            if len(input_list) == 3:
-                if input_list[0] == 'Add':
-                   self.add_expense(input_list[0], input_list)
-                elif input_list[0] == 'Delete':
-                    self.delete_expense(input_list[0], input_list)
+    def save_file(self, *args):
+        with open(self.path_file, 'w') as expenses_file:
+            for i in range(len(self.concepts)):
+                if i < (len(self.concepts)-1):
+                    expenses_file.write("{0},".format(self.concepts[i]))
                 else:
-                    print "You have to write 'Add','delete', 'edit' in the Beginning"
+                    expenses_file.write("{0}\n".format(self.concepts[i]))
+            for i in range(len(self.quantities)):
+                if i < (len(self.quantities)-1):
+                    expenses_file.write("{0},".format(self.quantities[i]))
+                else:
+                    expenses_file.write("{0}".format(self.quantities[i]))
+        print "Bye!"
+        self.process_flag = False
+
+    def add_expense(self, quantity, concept):
+        if(quantity.isdigit()):
+            if concept in self.concepts:
+                concept_position = self.concepts.index(concept)
+                self.quantities[concept_position] = int(self.quantities[concept_position]) + int(quantity)
+                self.print_total("Added", int(quantity), concept, self.quantities[concept_position])
             else:
-                print "You have to write a text: 'Add # food/transportation/gym'"
+                print "The concept is incorrect"
+        else:
+            print("The 2nd parameter has to be a number")
+
+    def delete_expense(self, quantity, concept):
+        if(quantity.isdigit()):
+            if concept in self.concepts:
+                concept_position = self.concepts.index(concept)
+                self.quantities[concept_position] = int(self.quantities[concept_position]) - int(quantity)
+                self.print_total("Deleted", int(quantity), concept, self.quantities[concept_position])
+            else:
+                print "The concept is incorrect"
+        else:
+            print("The 2nd parameter has to be a number")
+
+    def process_input(self, user_input):
+        input_list = user_input.split()
+        option, arguments = input_list[0], input_list[1:]
+        if input_list[0] in self.options:
+            self.options[option](*arguments)
+        else:
+            print "Not an option"
 
 if __name__ == '__main__':
     try:
         exp = Expenses()
-        exp.read_file("test.txt")
-        print "Welcome!\nYou have:\nFood:{0}, Transportation:{1}, Gym:{2} ".format(exp.food, exp.transport, exp.gym)
-        while(exp.proces_flag):
-            exp.input = raw_input("= ")
-            input_list = exp.input.split()
-            exp.process_input(input_list)
+        exp.path_file = "test.txt"
+        exp.read_expenses_file()
+        print "Welcome!\nYou have:"
+        exp.print_expenses()
+        while(exp.process_flag):
+            user_input = raw_input("= ")
+            exp.process_input(user_input.upper())
     except:
         print "Error: ", sys.exc_info()[0]
         raise
-
-    #kargs
-    #*args
